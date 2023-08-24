@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'dart:math';
+import 'global_variable.dart';
+import 'board1_page.dart';
+import 'board2_page.dart';
+import 'board3_page.dart';
 
 void main() {
   runApp(const MyApp());
 }
-
-List<String> mqttStatus = [
-  'initial connection state',
-  'Initial state of 1',
-  'initial state of 2',
-  'initial state of 3'
-];
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -51,7 +49,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void connect() async {
-    client = MqttServerClient.withPort(broker, 'ClientID_karthi1248345', port);
+    var random = Random();
+    var number = random.nextInt(1000000000);
+    client = MqttServerClient.withPort(broker, 'ClientID_$number', port);
     if (client == null) {
       return;
     }
@@ -72,11 +72,11 @@ class _HomePageState extends State<HomePage> {
             messages[0].payload as MqttPublishMessage;
         final String payload =
             MqttPublishPayload.bytesToStringAsString(message.payload.message);
-        print('Received Message : $payload');
+        // print('Received Message : $payload');
         String topic = payload[6];
-        print(topic);
+        // print(topic);
         String data = payload.substring(9).split(':').join('');
-        print(data);
+        // print(data);
         setState(() {
           if (topic == '1') {
             mqttStatus[1] = '$topic $data';
@@ -107,9 +107,60 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  Widget customButton(int boardNumber, Size size) {
+    Widget targetPage;
+
+    switch (boardNumber) {
+      case 1:
+        targetPage = const Board1Page();
+        break;
+      case 2:
+        targetPage = const Board2Page();
+        break;
+      case 3:
+        targetPage = const Board3Page();
+        break;
+      default:
+        targetPage = const SizedBox(); // Placeholder, you can change this
+    }
+
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => targetPage),
+        );
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.grey[200],
+        foregroundColor: Colors.black,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(13),
+        ),
+        padding: const EdgeInsets.all(0),
+      ),
+      child: Container(
+        alignment: Alignment.center,
+        height: size.height * 0.065,
+        width: double.infinity,
+        padding: const EdgeInsets.only(left: 10),
+        child: Text(
+          'Board $boardNumber',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+
+    // BuildContext localContext = context;
+
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor,
       body: Column(
@@ -156,98 +207,11 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 30),
                   Column(
                     children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const Board1Page()),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey[200],
-                          foregroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(13),
-                          ),
-                          padding: const EdgeInsets.all(0),
-                        ),
-                        child: Container(
-                          alignment: Alignment.center,
-                          height: size.height * 0.065,
-                          width: double.infinity,
-                          padding: const EdgeInsets.only(left: 10),
-                          child: const Text(
-                            'Board 1',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
+                      customButton(1, size),
                       const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const Board2Page()),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey[200],
-                          foregroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(13),
-                          ),
-                          padding: const EdgeInsets.all(0),
-                        ),
-                        child: Container(
-                          alignment: Alignment.center,
-                          height: size.height * 0.065,
-                          width: double.infinity,
-                          padding: const EdgeInsets.only(left: 10),
-                          child: const Text(
-                            'Board 2',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
+                      customButton(2, size),
                       const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const Board3Page()),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey[200],
-                          foregroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(13),
-                          ),
-                          padding: const EdgeInsets.all(0),
-                        ),
-                        child: Container(
-                          alignment: Alignment.center,
-                          height: size.height * 0.065,
-                          width: double.infinity,
-                          padding: const EdgeInsets.only(left: 10),
-                          child: const Text(
-                            'Board 3',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
+                      customButton(3, size),
                     ],
                   ),
                 ],
@@ -259,229 +223,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-class Board1Page extends StatelessWidget {
-  const Board1Page({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Board 1'),
-      ),
-      body: Center(
-        child: Text(mqttStatus[1]),
-      ),
-    );
-  }
-}
-
-class Board2Page extends StatelessWidget {
-  const Board2Page({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Board 2'),
-      ),
-      body: Center(
-        child: Text(mqttStatus[2]),
-      ),
-    );
-  }
-}
-
-class Board3Page extends StatelessWidget {
-  const Board3Page({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Board 3'),
-      ),
-      body: Center(
-        child: Text(mqttStatus[3]),
-      ),
-    );
-  }
-}
-
-// class Board2Page extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     Size size = MediaQuery.of(context).size;
-//     return Scaffold(
-//       backgroundColor: Theme.of(context).primaryColor,
-//       body: Column(
-//         mainAxisAlignment: MainAxisAlignment.center,
-//         crossAxisAlignment: CrossAxisAlignment.center,
-//         children: [
-//           Container(
-//             height: size.height * 0.35,
-//             alignment: Alignment.center,
-//             child: Text(
-//               'Board 2',
-//               style: TextStyle(
-//                 color: Colors.white,
-//                 fontSize: 40,
-//                 fontWeight: FontWeight.bold,
-//               ),
-//             ),
-//           ),
-//           Expanded(
-//             child: Container(
-//               padding: EdgeInsets.all(20),
-//               decoration: BoxDecoration(
-//                 color: Colors.white,
-//                 borderRadius: BorderRadius.only(
-//                   topLeft: Radius.circular(30),
-//                   topRight: Radius.circular(30),
-//                 ),
-//               ),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   Padding(
-//                     padding: EdgeInsets.only(left: 25, top: 45),
-//                     child: Text(
-//                       'Select your board',
-//                       style: TextStyle(
-//                         color: Theme.of(context).primaryColor,
-//                         fontSize: 30,
-//                         fontWeight: FontWeight.bold,
-//                       ),
-//                     ),
-//                   ),
-//                   SizedBox(height: 30),
-//                   ElevatedButton(
-//                     onPressed: () {
-//                       print(
-//                           'Button pressed'); // Print message when button is pressed
-//                     },
-//                     style: ElevatedButton.styleFrom(
-//                       backgroundColor: Colors.white,
-//                       foregroundColor: Colors.black,
-//                       shape: RoundedRectangleBorder(
-//                         borderRadius: BorderRadius.circular(13),
-//                       ),
-//                       padding: EdgeInsets.all(0),
-//                     ),
-//                     child: Container(
-//                       alignment: Alignment.center,
-//                       height: size.height * 0.065,
-//                       width: double.infinity,
-//                       padding: EdgeInsets.only(left: 10),
-//                       child: Text(
-//                         'Board 1',
-//                         style: TextStyle(
-//                           fontSize: 18,
-//                           fontWeight: FontWeight.w500,
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-// class Board3Page extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     Size size = MediaQuery.of(context).size;
-//     return Scaffold(
-//       backgroundColor: Theme.of(context).primaryColor,
-//       body: Column(
-//         children: [
-//           Container(
-//             padding: EdgeInsets.all(20),
-//             child: Column(
-//               children: [
-//                 Container(
-//                   alignment: Alignment.centerLeft,
-//                   padding: EdgeInsets.only(top: 50, left: 20),
-//                   child: Text(
-//                     'Board 3',
-//                     style: TextStyle(
-//                       color: Colors.white,
-//                       fontSize: 35,
-//                       fontWeight: FontWeight.bold,
-//                     ),
-//                   ),
-//                 ),
-//                 SizedBox(height: 30),
-//                 Column(
-//                   children: [
-//                     ElevatedButton(
-//                       onPressed: () {
-//                         // Handle button press
-//                       },
-//                       style: ElevatedButton.styleFrom(
-//                         backgroundColor: Colors.grey,
-//                         shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.circular(13),
-//                         ),
-//                         padding: EdgeInsets.all(0),
-//                       ),
-//                       child: Container(
-//                         alignment: Alignment.center,
-//                         height: size.height * 0.065,
-//                         width: double.infinity,
-//                         padding: EdgeInsets.only(left: 10),
-//                         child: Text(
-//                           'Light 1',
-//                           style: TextStyle(
-//                             fontSize: 18,
-//                             fontWeight: FontWeight.w500,
-//                             color: Colors.black,
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                     SizedBox(height: 20),
-//                     // Repeat similar ElevatedButton widgets for other buttons
-//                   ],
-//                 ),
-//               ],
-//             ),
-//           ),
-//           Expanded(
-//             child: Container(
-//               padding: EdgeInsets.all(20),
-//               decoration: BoxDecoration(
-//                 color: Colors.white,
-//                 borderRadius: BorderRadius.only(
-//                   topLeft: Radius.circular(30),
-//                   topRight: Radius.circular(30),
-//                 ),
-//               ),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   Padding(
-//                     padding: EdgeInsets.only(left: 25, top: 45),
-//                     child: Text(
-//                       'Select your board',
-//                       style: TextStyle(
-//                         color: Theme.of(context).primaryColor,
-//                         fontSize: 30,
-//                         fontWeight: FontWeight.bold,
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
